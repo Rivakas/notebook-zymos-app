@@ -125,6 +125,18 @@ input:focus, textarea:focus { outline: 2px solid var(--zalia); outline-offset: -
 }
 .kortele.tuscia { border-left-color: var(--raudona); }
 
+/* Diegimo juostelė: matoma tik kol programėlė neįdiegta, todėl gali sau
+   leisti būti pastebima. */
+.diegimas {
+  margin: 14px 0;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  background: var(--zalia-sviesi);
+  border: 1px solid var(--zalia);
+  border-radius: 8px;
+}
+.diegimas .mygtukas { margin-bottom: 0; }
+
 .tuscias { padding: 28px 0; color: var(--blankus); text-align: center; }
 .tuscias input { text-align: left; }
 

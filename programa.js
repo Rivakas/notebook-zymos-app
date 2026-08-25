@@ -18,6 +18,70 @@ let indeksas = null;
 let pasirinkta = '';
 let dalinamasi = null;   // { nuoroda, pavadinimas, aprasymas }
 
+// ---------------------------------------------------------------- įdiegimas
+
+// Dalijimosi meniu programėlė patenka tik tada, kai Android ją įsidiegia kaip
+// tikrą paketą (WebAPK). Vien piktograma-nuoroda ekrane to nepadaro, o Chrome
+// meniu punktas skirtingose versijose vadinasi skirtingai ir guli skirtingose
+// vietose. Todėl diegimą siūlom patys: naršyklė apie tokią galimybę praneša
+// `beforeinstallprompt` įvykiu, o mes jį pasiliekam iki paspaudimo.
+let diegimoPrasymas = null;
+
+function arIdiegta() {
+  return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+}
+
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();          // neleidžiam naršyklei rodyti savo juostelės
+  diegimoPrasymas = e;
+  piestiDiegima();
+});
+
+addEventListener('appinstalled', () => {
+  diegimoPrasymas = null;
+  piestiDiegima('Įdiegta. Dabar programėlė turi atsirasti ir dalijimosi meniu.');
+});
+
+function piestiDiegima(zinute) {
+  const d = $('diegimas');
+  const t = $('diegimo-tekstas');
+  const m = $('diegti');
+
+  if (zinute) {
+    d.classList.remove('hidden');
+    m.classList.add('hidden');
+    t.textContent = zinute;
+    return;
+  }
+
+  if (arIdiegta()) { d.classList.add('hidden'); return; }
+
+  if (diegimoPrasymas) {
+    d.classList.remove('hidden');
+    m.classList.remove('hidden');
+    t.textContent = 'Kad programėlė atsirastų dalijimosi meniu, ją reikia įdiegti:';
+    return;
+  }
+
+  // Prašymo nėra. Priežastis dažniausiai viena iš trijų, ir naudotojui
+  // svarbu žinoti, kuri — todėl parašom visas tris, o ne tylim.
+  d.classList.remove('hidden');
+  m.classList.add('hidden');
+  t.innerHTML = 'Naršyklė įdiegti nesiūlo. Taip būna, kai: programėlė <b>jau ' +
+                'įdiegta</b> (patikrink telefono programų sąraše); arba tai ' +
+                '<b>ne Chrome</b> (Firefox to nepalaiko); arba puslapis dar ' +
+                'nespėjo įsikrauti — perkrauk ir palauk.';
+}
+
+$('diegti').onclick = async () => {
+  if (!diegimoPrasymas) return;
+  const p = diegimoPrasymas;
+  diegimoPrasymas = null;
+  p.prompt();
+  const { outcome } = await p.userChoice;
+  if (outcome !== 'accepted') piestiDiegima('Įdiegimas atšauktas. Perkrovus puslapį pasiūlysiu vėl.');
+};
+
 // --------------------------------------------------------------- paleidimas
 
 (async function pradeti() {
@@ -30,6 +94,10 @@ let dalinamasi = null;   // { nuoroda, pavadinimas, aprasymas }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => { /* be jo veiks, tik ne neprisijungus */ });
   }
+
+  // `beforeinstallprompt` ateina ne iš karto po įkrovimo, tad sprendimą, ką
+  // rodyti, atidedam — kitaip visada spėtume parašyti „nesiūlo“.
+  setTimeout(() => piestiDiegima(), 2000);
 
   // Atsivėrus programėlei pasitikrinam, ar kompiuteryje neatsirado naujo.
   // Tyliai: jei telefonas be ryšio, tai ne klaida, o įprasta būsena.
