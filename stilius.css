@@ -115,6 +115,18 @@ input:focus, textarea:focus { outline: 2px solid var(--zalia); outline-offset: -
   border-radius: 0 6px 6px 0;
 }
 
+/* „Šitą jau turi“ — vienintelis dalykas, kurį telefone reikia pamatyti iš
+   pirmo žvilgsnio, todėl žalia ir per visą plotį, kaip varnelė kompiuteryje. */
+.ispejimas.turim {
+  background: var(--zalia-sviesi);
+  border: 1px solid var(--zalia);
+  border-left-width: 4px;
+  border-left-color: var(--zalia);
+  padding: 12px 14px;
+}
+.turim-antraste { font-weight: 600; color: var(--zalia); }
+.turim-tema { margin-top: 2px; word-break: break-word; }
+
 .kortele {
   margin: 14px 0;
   padding: 12px 14px;

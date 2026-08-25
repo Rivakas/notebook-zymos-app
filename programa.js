@@ -172,17 +172,40 @@ async function pradetiIrasyma(p) {
   $('pasirinkta-tema').textContent = '—';
   $('issaugoti').disabled = true;
 
-  const turim = await S.rastiPagalNuoroda(p.nuoroda);
+  await piestiTurejima(p.nuoroda);
+
+  await piestiSiulymus();
+}
+
+// Telefone nėra kur uždegti varnelės — naršyklė programėlei nesako, kokį
+// puslapį žiūri. Todėl atsakymas „ar jau turiu?“ duodamas tą akimirką, kai
+// nuoroda atkeliauja: aiškiai, spalvotai ir pakeičiant išsaugojimo mygtuką,
+// kad antra kopija neatsirastų neapsižiūrėjus.
+async function piestiTurejima(nuoroda) {
+  const turim = await S.rastiPagalNuoroda(nuoroda);
   const j = $('jau-turim');
+  const m = $('issaugoti');
+
   j.classList.toggle('hidden', !turim);
+  j.classList.toggle('turim', !!turim);
+  m.classList.toggle('pagrindinis', !turim);
+
   if (turim) {
     // Skiriam du atvejus: vienas jau NotebookLM pakete, kitas dar laukia
     // eksporto. Tas pats skirtumas kaip plėtinio varnelės paaiškinime.
-    j.textContent = (turim.baze ? 'Jau senojoje bazėje → ' : 'Jau išsaugota → ') +
-                    (turim.tema || '(be temos)');
+    j.innerHTML = '';
+    const antraste = document.createElement('div');
+    antraste.className = 'turim-antraste';
+    antraste.textContent = turim.baze ? '✓ Šitą jau turi — senojoje bazėje'
+                                      : '✓ Šitą jau turi — išsaugota, laukia eksporto';
+    const tema = document.createElement('div');
+    tema.className = 'turim-tema';
+    tema.textContent = turim.tema || '(be temos)';
+    j.append(antraste, tema);
+    m.textContent = 'Išsaugoti vis tiek';
+  } else {
+    m.textContent = 'Išsaugoti';
   }
-
-  await piestiSiulymus();
 }
 
 async function piestiSiulymus() {
