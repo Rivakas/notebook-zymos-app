@@ -86,11 +86,47 @@ export async function atnaujintiIrasa(id, keitimai) {
   return irasai[i];
 }
 
+// Ar ši nuoroda jau kur nors yra? Tikrinama ir tarp išsaugotų žymų, ir
+// senojoje bazėje — taip pat, kaip plėtinys uždega žalią varnelę.
+// Grąžina { tema, baze } arba null.
 export async function rastiPagalNuoroda(url) {
   const k = kanonine(url);
   if (!k) return null;
+
   const irasai = await gautiIrasus();
-  return irasai.find(i => kanonine(i.nuoroda) === k) || null;
+  const naujas = irasai.find(i => kanonine(i.nuoroda) === k);
+  if (naujas) return { tema: naujas.tema || '', baze: false };
+
+  const zemelapis = await archyvoNuorodos();
+  const nr = zemelapis && zemelapis.get(k);
+  if (nr !== undefined && nr !== null) {
+    const a = await gautiArchyva();
+    return { tema: a.temos[nr] || '', baze: true };
+  }
+
+  return null;
+}
+
+// 9490 nuorodų lentelė statoma vieną kartą ir laikoma atmintyje: perbėgti
+// visą archyvą prie kiekvieno dalijimosi būtų kvaila, o programėlė šiaip ar
+// taip gyva tik tol, kol atversta.
+let nuorodoKesas = null;
+
+async function archyvoNuorodos() {
+  if (nuorodoKesas) return nuorodoKesas;
+  const a = await gautiArchyva();
+  if (!a || !Array.isArray(a.irasai)) return null;
+  const m = new Map();
+  for (const [nr, , nuoroda] of a.irasai) {
+    const k = kanonine(nuoroda || '');
+    if (k) m.set(k, nr);
+  }
+  nuorodoKesas = m;
+  return m;
+}
+
+export function pamirstiArchyvoKesa() {
+  nuorodoKesas = null;
 }
 
 // ----------------------------------------------------------- antkapiai
@@ -135,6 +171,18 @@ export async function gautiIndeksa() {
 
 export async function irasytiIndeksa(ix) {
   await rasyti('indeksas', ix);
+}
+
+// ------------------------------------------------------------ archyvas
+
+// Senoji Raindrop bazė — tik skaitoma. Su sinchronizacija ji nesusijusi:
+// nesikeičia, keliauja atskirai ir tik paspaudus.
+export async function gautiArchyva() {
+  return (await gauti('archyvas')) || null;
+}
+
+export async function irasytiArchyva(a) {
+  await rasyti('archyvas', a);
 }
 
 // --------------------------------------------------------- paskutinės

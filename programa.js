@@ -70,6 +70,7 @@ document.querySelectorAll('.skirtukas').forEach(b => {
     document.querySelectorAll('.vaizdas').forEach(v => v.classList.add('hidden'));
     $('v-' + b.dataset.v).classList.remove('hidden');
     if (b.dataset.v === 'sarasas') piestiSarasa();
+    if (b.dataset.v === 'archyvas') piestiArchyva();
     if (b.dataset.v === 'nustatymai') piestiDerini();
     scrollTo(0, 0);
   };
@@ -106,7 +107,12 @@ async function pradetiIrasyma(p) {
   const turim = await S.rastiPagalNuoroda(p.nuoroda);
   const j = $('jau-turim');
   j.classList.toggle('hidden', !turim);
-  if (turim) j.textContent = 'Šią nuorodą jau turi → ' + (turim.tema || '(be temos)');
+  if (turim) {
+    // Skiriam du atvejus: vienas jau NotebookLM pakete, kitas dar laukia
+    // eksporto. Tas pats skirtumas kaip plėtinio varnelės paaiškinime.
+    j.textContent = (turim.baze ? 'Jau senojoje bazėje → ' : 'Jau išsaugota → ') +
+                    (turim.tema || '(be temos)');
+  }
 
   await piestiSiulymus();
 }
@@ -300,6 +306,89 @@ async function piestiSarasa() {
   }
 }
 
+// ------------------------------------------------------------------ archyvas
+
+// Senoji bazė: 9490 įrašų, tik skaitomų. Sinchronizacijos ji neliečia —
+// nesikeičia, tad ir siųsti pirmyn atgal nėra ko.
+let archyvas = null;
+
+async function piestiArchyva() {
+  if (!archyvas) archyvas = await S.gautiArchyva();
+  const b = $('archyvo-bukle');
+  const s = $('archyvo-sarasas');
+
+  if (!archyvas) {
+    b.className = 'bukle';
+    b.textContent = '';
+    s.innerHTML = '<div class="tuscias"><p><b>Archyvo nėra.</b></p>' +
+                  '<p>Parsisiųsk jį skiltyje „Nustatymai“ — po to galėsi naršyti ' +
+                  'visą senąją bazę ir be interneto.</p></div>';
+    return;
+  }
+
+  const q = $('archyvo-paieska').value.trim().toLowerCase();
+  const dalys = q.split(/\s+/).filter(Boolean);
+
+  // Be užklausos rodom tik pradžią: devynių tūkstančių eilučių piešimas
+  // telefone užtruktų sekundes, o prasmės neturi.
+  let rasta = 0;
+  const rodomi = [];
+  for (const e of archyvas.irasai) {
+    if (dalys.length) {
+      const t = (e[1] + ' ' + e[2] + ' ' + (archyvas.temos[e[0]] || '')).toLowerCase();
+      if (!dalys.every(d => t.includes(d))) continue;
+    }
+    rasta++;
+    if (rodomi.length < 200) rodomi.push(e);
+  }
+
+  b.className = 'bukle';
+  b.textContent = dalys.length
+    ? `Rasta ${rasta}${rasta > rodomi.length ? `, rodomi pirmi ${rodomi.length}` : ''}.`
+    : `Archyve ${archyvas.irasai.length} įrašų. Rodomi pirmi ${rodomi.length} — ieškok.`;
+
+  s.innerHTML = '';
+  if (!rodomi.length) {
+    s.innerHTML = '<div class="tuscias">Nieko nerasta.</div>';
+    return;
+  }
+
+  const gabalas = document.createDocumentFragment();
+  for (const [nr, pavadinimas, nuoroda, data] of rodomi) {
+    const d = document.createElement('div');
+    d.className = 'irasas';
+
+    const a = document.createElement('a');
+    a.className = 'pav';
+    a.href = nuoroda;
+    a.target = '_blank';
+    a.rel = 'noreferrer';
+    a.textContent = pavadinimas || nuoroda;
+    d.append(a);
+
+    const t = document.createElement('div');
+    t.className = 'tema';
+    t.textContent = archyvas.temos[nr] || '';
+    d.append(t);
+
+    const meta = document.createElement('div');
+    meta.className = 'nuor';
+    meta.textContent = [domenas(nuoroda), data].filter(Boolean).join(' · ');
+    d.append(meta);
+
+    gabalas.append(d);
+  }
+  s.append(gabalas);
+}
+
+// Paieška atidedama: kiekvienas paspaustas klavišas perbėga 9490 įrašų, o
+// telefone tai jaustųsi kaip užstrigusi klaviatūra.
+let archyvoLaikmatis = null;
+$('archyvo-paieska').oninput = () => {
+  clearTimeout(archyvoLaikmatis);
+  archyvoLaikmatis = setTimeout(piestiArchyva, 200);
+};
+
 // ----------------------------------------------------------- sinchronizacija
 
 const ADAPTERIS = {
@@ -371,9 +460,13 @@ async function piestiDerini() {
       `<span class="smulkiai">${s.bukle || ''}</span>`
     : '<b>Neprijungta.</b> Žymos guls tik šiame telefone.';
 
-  $('indekso-bukle').textContent = indeksas
-    ? `Indeksas: ${indeksas.temos.length} temų${s.indeksoData ? ', parsisiųsta ' + new Date(s.indeksoData).toLocaleDateString('lt-LT') : ''}.`
-    : 'Indekso nėra — temos nebus siūlomos.';
+  if (!archyvas) archyvas = await S.gautiArchyva();
+  const dalys = [
+    indeksas ? `indeksas: ${indeksas.temos.length} temų` : 'indekso nėra — temos nebus siūlomos',
+    archyvas ? `archyvas: ${archyvas.irasai.length} įrašų` : 'archyvo nėra',
+    s.indeksoData ? 'parsisiųsta ' + new Date(s.indeksoData).toLocaleDateString('lt-LT') : ''
+  ].filter(Boolean);
+  $('indekso-bukle').textContent = dalys.join(', ') + '.';
 }
 
 $('n-irasyti').onclick = async () => {
@@ -407,19 +500,33 @@ $('n-indeksas').onclick = async () => {
     parodyti('indekso-bukle', 'Pirma prijunk.', false);
     return;
   }
-  parodyti('indekso-bukle', 'Siunčiama… (apie 1 MB)', null);
   try {
+    parodyti('indekso-bukle', 'Siunčiamas indeksas… (apie 1 MB)', null);
     const g = await skaityti(cfg, 'indeksas.json');
     if (!g) {
       parodyti('indekso-bukle', 'Repo indekso nėra — įkelk jį iš kompiuterio ' +
-               '(Nustatymai → Sinchronizacija → Nusiųsti indeksą telefonui).', false);
+               '(Nustatymai → Sinchronizacija → Nusiųsti indeksą ir archyvą).', false);
       return;
     }
     const ix = JSON.parse(g.tekstas);
     await S.irasytiIndeksa(ix);
-    await S.irasytiSinch({ indeksoData: new Date().toISOString() });
     indeksas = ix;
-    parodyti('indekso-bukle', `Parsisiųsta: ${ix.temos.length} temų.`, true);
+
+    // Archyvas neprivalomas: be jo veikia viskas, tik nebus ko naršyti.
+    // Todėl jo nebuvimas — ne klaida, o pastaba.
+    let apieArchyva = ', archyvo repo nėra';
+    parodyti('indekso-bukle', 'Siunčiamas archyvas… (apie 1 MB)', null);
+    const ga = await skaityti(cfg, 'archyvas.json');
+    if (ga) {
+      const a = JSON.parse(ga.tekstas);
+      await S.irasytiArchyva(a);
+      S.pamirstiArchyvoKesa();
+      archyvas = a;
+      apieArchyva = `, archyve ${a.irasai.length} įrašų`;
+    }
+
+    await S.irasytiSinch({ indeksoData: new Date().toISOString() });
+    parodyti('indekso-bukle', `Parsisiųsta: ${ix.temos.length} temų${apieArchyva}.`, true);
   } catch (e) {
     parodyti('indekso-bukle', 'Nepavyko: ' + e.message, false);
   }

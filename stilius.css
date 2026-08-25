@@ -175,7 +175,10 @@ input:focus, textarea:focus { outline: 2px solid var(--zalia); outline-offset: -
   padding: 12px 0;
   border-bottom: 1px solid var(--linija);
 }
-.irasas .pav { font-weight: 600; word-break: break-word; }
+.irasas .pav { display: block; font-weight: 600; word-break: break-word; }
+/* Archyve pavadinimas yra nuoroda — bet atrodyti turi taip pat kaip sąraše,
+   o ne mėlyna ir pabraukta. */
+a.pav { color: inherit; text-decoration: none; }
 .irasas .nuor { display: block; font-size: 12.5px; color: var(--blankus); word-break: break-all; }
 .irasas .tema { font-size: 13px; color: var(--zalia); word-break: break-word; }
 .irasas .trinti {
@@ -201,8 +204,8 @@ input:focus, textarea:focus { outline: 2px solid var(--zalia); outline-offset: -
 
 .skirtukas {
   flex: 1;
-  padding: 14px 4px;
-  font-size: 13px;
+  padding: 14px 2px;
+  font-size: 12.5px;
   color: var(--blankus);
   background: none;
   border: none;

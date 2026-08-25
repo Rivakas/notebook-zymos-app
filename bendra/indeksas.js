@@ -120,6 +120,12 @@ export function kurtiIndeksa(irasai, kolekcijos, pranesk) {
   // Raindrop laikais, ir ant tokio puslapio uždegtų varnelę.
   const nuorodos = {};
 
+  // Archyvas — tie patys įrašai pavidalu, kurį galima parodyti sąrašu.
+  // Nuorodų lentelės (`nuorodos`) tam neužtenka: joje yra tik adresai ir temų
+  // numeriai, be pavadinimų. Laikom eilutėmis, o ne objektais: 9490 įrašų
+  // objektais užimtų kelis kartus daugiau vietos vien dėl kartojamų raktų.
+  const archyvas = [];
+
   let n = 0;
   for (const r of irasai) {
     const nr = temosNr(r.tema || r.Path || '');
@@ -130,6 +136,8 @@ export function kurtiIndeksa(irasai, kolekcijos, pranesk) {
     const url = r.nuoroda || r.link || '';
     const kanon = kanonine(url);
     if (kanon) nuorodos[kanon] = nr;
+
+    archyvas.push([nr, (r.pavadinimas || '').trim(), url, (r.sukurta || '').slice(0, 10)]);
 
     const d = (r.domenas || domenas(url) || '').toLowerCase();
     if (d) {
@@ -186,7 +194,14 @@ export function kurtiIndeksa(irasai, kolekcijos, pranesk) {
       domenuViso: Object.keys(dom).length,
       nuoroduViso: Object.keys(nuorodos).length
     },
-    nuorodos
+    nuorodos,
+    // Temų vardai atskirai — archyve laikomi tik jų numeriai.
+    archyvas: {
+      versija: 1,
+      sukurta: new Date().toISOString(),
+      temos: temos.map(t => t.k),
+      irasai: archyvas
+    }
   };
 }
 

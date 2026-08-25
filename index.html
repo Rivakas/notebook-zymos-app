@@ -65,6 +65,13 @@
   <div id="sarasas"></div>
 </section>
 
+<!-- ------------------------------------------------------------- archyvas -->
+<section id="v-archyvas" class="vaizdas hidden">
+  <input type="search" id="archyvo-paieska" placeholder="Ieškoti senojoje bazėje…">
+  <div id="archyvo-bukle" class="bukle"></div>
+  <div id="archyvo-sarasas"></div>
+</section>
+
 <!-- ----------------------------------------------------------- nustatymai -->
 <section id="v-nustatymai" class="vaizdas hidden">
 
@@ -89,7 +96,12 @@
     įkelia plėtinys (<i>Nustatymai → Sinchronizacija → Nusiųsti indeksą</i>).
   </p>
   <div id="indekso-bukle" class="bukle"></div>
-  <button id="n-indeksas" class="mygtukas">Parsisiųsti indeksą</button>
+  <button id="n-indeksas" class="mygtukas">Parsisiųsti indeksą ir archyvą</button>
+  <p class="smulkiai">
+    Archyvas — senoji bazė, kurią gali naršyti skirtuke <i>Archyvas</i>. Su juo
+    programėlė atpažįsta ir tai, ką turi dar nuo Raindrop laikų. Kartu apie
+    2 MB, tad geriau per Wi-Fi.
+  </p>
 
   <button id="n-atjungti" class="mygtukas pavojus">Atjungti</button>
 </section>
@@ -97,6 +109,7 @@
 <nav id="apacia">
   <button class="skirtukas aktyvus" data-v="irasyti">Įrašyti</button>
   <button class="skirtukas" data-v="sarasas">Sąrašas <span id="kiekis" class="zenklas">0</span></button>
+  <button class="skirtukas" data-v="archyvas">Archyvas</button>
   <button class="skirtukas" data-v="nustatymai">Nustatymai</button>
 </nav>
 
