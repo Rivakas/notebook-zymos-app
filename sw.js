@@ -8,7 +8,7 @@
 // Pakeitus numerį senasis kešas ištrinamas per `activate`. Verta pakelti
 // kaskart, kai keičiasi pats apvalkalas — taip nelieka progos susidurti
 // senai HTML su nauju JS.
-const KESAS = 'zymos-v2';
+const KESAS = 'zymos-v3';
 
 const APVALKALAS = [
   './',
@@ -28,8 +28,15 @@ const APVALKALAS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(KESAS)
-      // addAll nutrūktų visas, jei nors vieno failo nebūtų — todėl po vieną.
-      .then(k => Promise.all(APVALKALAS.map(u => k.add(u).catch(() => {}))))
+      // Du dalykai, kurių nepadarius atnaujinimas atrodytų įvykęs, bet nebūtų:
+      //   * `cache: 'reload'` — be jo `add` ima per naršyklės HTTP kešą, o
+      //     GitHub Pages liepia turinį laikyti 10 minučių; į naują kešą tada
+      //     patenka senas apvalkalas ir lieka ten iki kito atnaujinimo;
+      //   * po vieną, o ne `addAll` — antraip vieno failo trūkumas nutrauktų
+      //     visą įdiegimą.
+      .then(k => Promise.all(APVALKALAS.map(
+        u => k.add(new Request(u, { cache: 'reload' })).catch(() => {})
+      )))
       .then(() => self.skipWaiting())
   );
 });
