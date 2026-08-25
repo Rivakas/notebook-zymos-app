@@ -1,0 +1,26 @@
+{
+  "name": "Notebook žymos",
+  "short_name": "Žymos",
+  "description": "Nuorodų kaupimas su automatiniu temos siūlymu.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2f6f4f",
+  "lang": "lt",
+  "icons": [
+    { "src": "ikonos/192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "ikonos/512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "ikonos/512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

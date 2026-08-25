@@ -1,0 +1,223 @@
+/* Tos pačios spalvos kaip plėtinio nustatymuose — kad abu langai atrodytų
+   kaip vienas daiktas. Išdėstymas kitoks: telefonui, nykščiui, viena ranka. */
+
+:root {
+  --fonas: #ffffff;
+  --tekstas: #1b1d1c;
+  --blankus: #6b706d;
+  --linija: #e3e6e4;
+  --lauko-fonas: #f6f7f6;
+  --zalia: #2f6f4f;
+  --zalia-sviesi: #eaf3ee;
+  --raudona: #a33b32;
+  --geltona: #a8791f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fonas: #1c1f1d;
+    --tekstas: #e8ebe9;
+    --blankus: #9aa19d;
+    --linija: #313633;
+    --lauko-fonas: #262a28;
+    --zalia: #6fbf94;
+    --zalia-sviesi: #23342b;
+    --raudona: #e08b82;
+    --geltona: #d8b45c;
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  padding: 0 16px calc(72px + env(safe-area-inset-bottom));
+  font: 16px/1.55 system-ui, "Segoe UI", sans-serif;
+  color: var(--tekstas);
+  background: var(--fonas);
+}
+
+#virsus {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0 10px;
+  background: var(--fonas);
+  border-bottom: 1px solid var(--linija);
+}
+
+h1 { font-size: 17px; margin: 0; }
+h2 {
+  font-size: 12px;
+  margin: 22px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--blankus);
+}
+p { margin: 6px 0 12px; }
+.hidden { display: none !important; }
+.smulkiai { font-size: 13.5px; color: var(--blankus); }
+
+/* ------------------------------------------------------------------ laukai */
+
+label { display: block; margin: 12px 0; font-size: 13.5px; color: var(--blankus); }
+
+input, textarea, button {
+  font: inherit;
+  color: var(--tekstas);
+}
+
+input[type=text], input[type=url], input[type=search], input[type=password], textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 11px 12px;
+  background: var(--lauko-fonas);
+  border: 1px solid var(--linija);
+  border-radius: 8px;
+  font-size: 16px;   /* mažiau nei 16px verčia iOS priartinti puslapį */
+}
+
+input:focus, textarea:focus { outline: 2px solid var(--zalia); outline-offset: -1px; }
+
+#paieska { margin: 12px 0; }
+
+.mygtukas {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 13px 16px;
+  background: var(--lauko-fonas);
+  border: 1px solid var(--linija);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.mygtukas:disabled { opacity: .45; }
+.mygtukas.pagrindinis { background: var(--zalia); border-color: var(--zalia); color: #fff; font-weight: 600; }
+.mygtukas.pavojus { margin-top: 28px; color: var(--raudona); border-color: var(--raudona); background: none; }
+
+/* ------------------------------------------------------------- pranešimai */
+
+.bukle { font-size: 13px; color: var(--blankus); min-height: 1.3em; }
+.bukle.gerai { color: var(--zalia); }
+.bukle.bloga { color: var(--raudona); }
+
+.ispejimas {
+  margin: 10px 0;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  background: var(--lauko-fonas);
+  border-left: 3px solid var(--geltona);
+  border-radius: 0 6px 6px 0;
+}
+
+.kortele {
+  margin: 14px 0;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  background: var(--lauko-fonas);
+  border-left: 3px solid var(--zalia);
+  border-radius: 0 6px 6px 0;
+}
+.kortele.tuscia { border-left-color: var(--raudona); }
+
+.tuscias { padding: 28px 0; color: var(--blankus); text-align: center; }
+.tuscias input { text-align: left; }
+
+.nuoroda {
+  font-size: 12.5px;
+  color: var(--blankus);
+  word-break: break-all;
+  margin-bottom: 10px;
+}
+
+.pasirinkta {
+  margin: 16px 0 6px;
+  padding: 10px 12px;
+  background: var(--zalia-sviesi);
+  border-radius: 8px;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------- siūlymai */
+
+.siulymai { list-style: none; margin: 8px 0; padding: 0; }
+.siulymai li {
+  position: relative;
+  margin-bottom: 6px;
+  padding: 12px 14px;
+  background: var(--lauko-fonas);
+  border: 1px solid var(--linija);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.siulymai .juostele {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--zalia-sviesi);
+}
+.siulymai li > * { position: relative; }
+.siulymai li.zymeta { border-color: var(--zalia); box-shadow: inset 0 0 0 1px var(--zalia); }
+.siulymai li.nauja { border-style: dashed; }
+.siulymai .kelias { font-size: 14px; word-break: break-word; }
+.siulymai .kodel { font-size: 12.5px; color: var(--blankus); margin-top: 2px; }
+.siulymai .tuscias { padding: 14px 0; }
+
+/* ---------------------------------------------------------------- sąrašas */
+
+.irasas {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--linija);
+}
+.irasas .pav { font-weight: 600; word-break: break-word; }
+.irasas .nuor { display: block; font-size: 12.5px; color: var(--blankus); word-break: break-all; }
+.irasas .tema { font-size: 13px; color: var(--zalia); word-break: break-word; }
+.irasas .trinti {
+  margin-top: 6px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  color: var(--blankus);
+  background: none;
+  border: 1px solid var(--linija);
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------- apatinė juosta */
+
+#apacia {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--fonas);
+  border-top: 1px solid var(--linija);
+}
+
+.skirtukas {
+  flex: 1;
+  padding: 14px 4px;
+  font-size: 13px;
+  color: var(--blankus);
+  background: none;
+  border: none;
+  border-top: 2px solid transparent;
+  cursor: pointer;
+}
+.skirtukas.aktyvus { color: var(--tekstas); border-top-color: var(--zalia); font-weight: 600; }
+
+.zenklas {
+  display: inline-block;
+  min-width: 17px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--zalia);
+  border-radius: 9px;
+}

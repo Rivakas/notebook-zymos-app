@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6f4f">
+<title>Notebook žymos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikonos/192.png">
+<link rel="apple-touch-icon" href="ikonos/192.png">
+<link rel="stylesheet" href="stilius.css">
+</head>
+<body>
+
+<header id="virsus">
+  <h1 id="antraste">Notebook žymos</h1>
+  <span id="rysys" class="bukle"></span>
+</header>
+
+<!-- ------------------------------------------------------------ įrašymas -->
+<section id="v-irasyti" class="vaizdas">
+
+  <div id="nera-ko" class="tuscias">
+    <p><b>Nieko įrašyti.</b></p>
+    <p>Naršyklėje paspausk <i>Dalintis</i> → <b>Notebook žymos</b>, ir puslapis
+       atsidurs čia.</p>
+    <p class="smulkiai">Nuorodą gali ir įklijuoti ranka:</p>
+    <input type="url" id="ranka-nuoroda" placeholder="https://…" inputmode="url">
+    <button id="ranka-toliau" class="mygtukas">Toliau</button>
+  </div>
+
+  <div id="forma" class="hidden">
+    <label>Pavadinimas
+      <input type="text" id="f-pavadinimas">
+    </label>
+    <div id="f-nuoroda" class="nuoroda"></div>
+
+    <div id="jau-turim" class="ispejimas hidden"></div>
+
+    <h2>Siūlomos temos</h2>
+    <ul id="siulymai" class="siulymai"></ul>
+    <div id="silpna" class="ispejimas hidden">
+      Panašių įrašų bazėje nedaug — temą geriau parink pats.
+    </div>
+
+    <label>Kita tema
+      <input type="text" id="f-paieska" placeholder="ieškoti arba įrašyti naują su /">
+    </label>
+    <ul id="paieskos-rezultatai" class="siulymai"></ul>
+
+    <label>Pastaba
+      <textarea id="f-pastaba" rows="2" placeholder="nebūtina"></textarea>
+    </label>
+
+    <div class="pasirinkta">Tema: <b id="pasirinkta-tema">—</b></div>
+    <button id="issaugoti" class="mygtukas pagrindinis" disabled>Išsaugoti</button>
+    <div id="irasymo-bukle" class="bukle"></div>
+  </div>
+
+</section>
+
+<!-- -------------------------------------------------------------- sąrašas -->
+<section id="v-sarasas" class="vaizdas hidden">
+  <input type="search" id="paieska" placeholder="Ieškoti tarp išsaugotų…">
+  <div id="sarasas"></div>
+</section>
+
+<!-- ----------------------------------------------------------- nustatymai -->
+<section id="v-nustatymai" class="vaizdas hidden">
+
+  <div id="derinio-bukle" class="kortele"></div>
+
+  <h2>Ryšys su kompiuteriu</h2>
+  <p class="smulkiai">
+    Tie patys duomenys kaip plėtinyje — tik įrenginio vardas turi būti kitoks.
+  </p>
+  <label>GitHub naudotojas <input type="text" id="n-savininkas" autocomplete="off" autocapitalize="none"></label>
+  <label>Repo vardas <input type="text" id="n-repo" autocomplete="off" autocapitalize="none"></label>
+  <label>Raktas <input type="password" id="n-raktas" autocomplete="off"></label>
+  <label>Šio įrenginio vardas <input type="text" id="n-irenginys" autocomplete="off" autocapitalize="none"></label>
+
+  <button id="n-irasyti" class="mygtukas pagrindinis">Įrašyti ir prijungti</button>
+  <button id="n-dabar" class="mygtukas">Sinchronizuoti dabar</button>
+  <div id="n-bukle" class="bukle"></div>
+
+  <h2>Temų indeksas</h2>
+  <p class="smulkiai">
+    Be jo programėlė temų nesiūlys — tik leis įrašyti nuorodą. Indeksą į repo
+    įkelia plėtinys (<i>Nustatymai → Sinchronizacija → Nusiųsti indeksą</i>).
+  </p>
+  <div id="indekso-bukle" class="bukle"></div>
+  <button id="n-indeksas" class="mygtukas">Parsisiųsti indeksą</button>
+
+  <button id="n-atjungti" class="mygtukas pavojus">Atjungti</button>
+</section>
+
+<nav id="apacia">
+  <button class="skirtukas aktyvus" data-v="irasyti">Įrašyti</button>
+  <button class="skirtukas" data-v="sarasas">Sąrašas <span id="kiekis" class="zenklas">0</span></button>
+  <button class="skirtukas" data-v="nustatymai">Nustatymai</button>
+</nav>
+
+<script type="module" src="programa.js"></script>
+</body>
+</html>
