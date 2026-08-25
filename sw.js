@@ -5,7 +5,10 @@
 //
 // Duomenų jis nekešuoja — jie guli IndexedDB ir taip yra telefone.
 
-const KESAS = 'zymos-v1';
+// Pakeitus numerį senasis kešas ištrinamas per `activate`. Verta pakelti
+// kaskart, kai keičiasi pats apvalkalas — taip nelieka progos susidurti
+// senai HTML su nauju JS.
+const KESAS = 'zymos-v2';
 
 const APVALKALAS = [
   './',
@@ -48,9 +51,19 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
 
   // Dalijimosi metu adresas būna su parametrais (?url=…) — tokio kešas
-  // nepažįsta, todėl atsakom pačiu apvalkalu.
+  // nepažįsta, todėl atsakom pačiu apvalkalu. Bet pirma bandom tinklą:
+  // atiduoti seną index.html tuo metu, kai programa.js jau parsisiųsta nauja,
+  // reikštų, kad naujas kodas ieško elementų, kurių senoje HTML dar nėra —
+  // ir programėlė nulūžtų būtent dalijantis, t. y. dažniausiu atveju.
   if (u.origin === location.origin && u.pathname.endsWith('/index.html') && u.search) {
-    e.respondWith(caches.match('./index.html').then(r => r || fetch(e.request)));
+    e.respondWith(
+      fetch('./index.html', { cache: 'no-cache' })
+        .then(r => {
+          if (r && r.ok) caches.open(KESAS).then(k => k.put('./index.html', r.clone()));
+          return r;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
     return;
   }
 
