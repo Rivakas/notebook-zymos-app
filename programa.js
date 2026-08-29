@@ -139,7 +139,7 @@ document.querySelectorAll('.skirtukas').forEach(b => {
     $('v-' + b.dataset.v).classList.remove('hidden');
     if (b.dataset.v === 'sarasas') piestiSarasa();
     if (b.dataset.v === 'archyvas') piestiArchyva();
-    if (b.dataset.v === 'nustatymai') piestiDerini();
+    if (b.dataset.v === 'nustatymai') { piestiDerini(); piestiZenkloBukle(); }
     scrollTo(0, 0);
   };
 });
@@ -338,7 +338,45 @@ $('issaugoti').onclick = async () => {
 // ------------------------------------------------------------------ sąrašas
 
 async function piestiKieki() {
-  $('kiekis').textContent = (await S.gautiIrasus()).length;
+  const irasai = await S.gautiIrasus();
+  $('kiekis').textContent = irasai.length;
+  await zenklasAntIkonos(irasai);
+}
+
+// Skaičius ant pačios programėlės ikonos — tas pats, ką plėtinys rodo ant savo
+// ikonos naršyklėje: kiek žymų dar laukia eksporto. Jau iškeliavusios
+// (`eksportuota`) neskaičiuojamos, kitaip skaičius niekada nenusiramintų.
+//
+// Ne visur veikia. Įdiegtoms darbalaukio programėlėms — taip; Android Chrome
+// šito API neturi, ir ten telieka skaičius ant skirtuko „Sąrašas“. Todėl ir
+// tikrinam, ar jis apskritai yra: neradę tyliai praeinam, o ne griūvam.
+// Būklę įsimenam ir parodom nustatymuose. Be jos „skaičiaus nėra“ turi tris
+// skirtingas priežastis — nepalaikoma, neįdiegta, arba nulis — ir iš ekrano
+// jos neatskirsi.
+let zenkloBukle = 'dar netikrinta';
+
+async function zenklasAntIkonos(irasai) {
+  const laukia = irasai.filter(i => !i.eksportuota).length;
+
+  if (!('setAppBadge' in navigator)) {
+    zenkloBukle = `Naršyklė šito nepalaiko — ikona lieka be skaičiaus. Laukia: ${laukia}.`;
+  } else {
+    try {
+      if (laukia) await navigator.setAppBadge(laukia);
+      else await navigator.clearAppBadge();
+      zenkloBukle = laukia
+        ? `Nustatyta: ${laukia}. Jei ant ikonos nematyti — programėlė neįdiegta į ekraną.`
+        : 'Nieko nelaukia, tad ženklo ir nėra.';
+    } catch (e) {
+      zenkloBukle = 'Nepavyko: ' + e.message + ' (dažniausiai — programėlė neįdiegta).';
+    }
+  }
+  piestiZenkloBukle();
+}
+
+function piestiZenkloBukle() {
+  const el = document.getElementById('zenklo-bukle');
+  if (el) el.textContent = zenkloBukle;
 }
 
 $('paieska').oninput = () => piestiSarasa();
@@ -491,6 +529,34 @@ const ADAPTERIS = {
 };
 
 let sinchVyksta = false;
+
+// Kol programėlė matoma, retkarčiais pasitikrinam patys — kad kompiuteryje
+// išsaugota žyma atsirastų be jokio paspaudimo. Nematomoje kortelėje to
+// nedarom: telefonas ten nieko nerodo, o duomenys ir baterija eikvojami.
+//
+// Uždarytos programėlės pažadinti neįmanoma. Tai ne nustatymas, o žiniatinklio
+// programėlių riba: kol jos nėra atverta, jokio kodo nėra kam vykdyti. Todėl
+// atvėrimas ir lieka anksčiausias momentas, kada telefonas gali sužinoti naujo.
+const MATOMOS_MS = 60 * 1000;
+let matomosLaikmatis = null;
+
+function paleistiPeriodini() {
+  if (matomosLaikmatis) clearInterval(matomosLaikmatis);
+  matomosLaikmatis = setInterval(async () => {
+    if (document.visibilityState !== 'visible') return;
+    if (await S.arPrijungta()) sinchronizuoti(true);
+  }, MATOMOS_MS);
+}
+
+// Grįžus į programėlę iš kito lango puslapis iš naujo nekraunamas, tad
+// pradinis patikrinimas nepasikartotų — o kaip tik tada naujo dažniausiai ir
+// esama.
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  if (await S.arPrijungta()) sinchronizuoti(true);
+});
+
+paleistiPeriodini();
 
 async function sinchronizuoti(tyliai) {
   if (sinchVyksta) return;

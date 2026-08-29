@@ -120,6 +120,19 @@ function sujungtiDublikatus(irasai, antkapiai) {
     for (const laukas of ['tema', 'aprasymas', 'pastaba', 'pavadinimas']) {
       if (!laimi[laukas] && pralaimi[laukas]) laimi[laukas] = pralaimi[laukas];
     }
+
+    // Pavadinimui vien „tuščias pralaimi“ neužtenka. Vienpusėse svetainėse
+    // naršyklė kartais išsaugo vien svetainės vardą („YouTube“), o telefone ta
+    // pati nuoroda išsaugoma su tikruoju pavadinimu. Abu netušti, tad laimi
+    // naujesnis — ir tikrasis pavadinimas dingsta.
+    //
+    // Požymis aiškus: laimėjusysis stovi pralaimėjusiojo gale („Įrašas –
+    // YouTube“). Tada jis yra uodega, o ne pavadinimas.
+    const a = (laimi.pavadinimas || '').toLowerCase();
+    const b = (pralaimi.pavadinimas || '').toLowerCase();
+    if (a && b && b.length > a.length && b.endsWith(a)) {
+      laimi.pavadinimas = pralaimi.pavadinimas;
+    }
     if (!laimi.zymos || !laimi.zymos.length) laimi.zymos = pralaimi.zymos || [];
     // Sukūrimo laiką paliekam ankstyvesnį — žyma atsirado tada.
     if (laikas(pralaimi.sukurta) && laikas(pralaimi.sukurta) < laikas(laimi.sukurta)) {

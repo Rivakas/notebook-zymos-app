@@ -136,12 +136,34 @@ export function kalba(t) {
 // Kelias iš bet kurio pavidalo (CSV „A › B“ arba kolekcijos.json „A / B“)
 // paverčiamas vienodu segmentų sąrašu: nuimama bendra šaknis „BOOKMARKS:“,
 // nuimami dvitaškiai gale, pašalinami tušti segmentai.
+// \u0160aknys, kurios nieko neskiria: kartojasi beveik kiekviename kelyje ir temos
+// nei\u0161duoda. \u201EBOOKMARKS\u201C yra visos baz\u0117s \u0161aknis, \u201EMOKSLAS\u201C \u2014 beveik visko,
+// kas joje. Tas pats s\u0105ra\u0161as galioja ir NotebookLM paketui
+// (`_raindrop\4-notebooklm.ps1`, parametras -NuimtiSaknis), kad pl\u0117tinio
+// si\u016Blomos temos atrodyt\u0173 taip pat, kaip paketo fail\u0173 vardai.
+//
+// Nuimama tik \u010Dia, skaitant. Pa\u010Diame Raindrop'e tos kolekcijos lieka:
+// pervadinimas gali nuimti dvita\u0161k\u012F, bet ne pat\u012F hierarchijos lyg\u012F.
+// Skiriasi tuo, kada nuimama:
+//   SAKNIS       \u2014 visos baz\u0117s talpykla. Ji n\u0117ra tema net tada, kai kelias
+//                  susideda vien i\u0161 jos, tad nuimama visada (taip buvo ir
+//                  anks\u010Diau: tie keli \u0161aknyje gulintys \u012Fra\u0161ai temos neturi).
+//   NIEKO_NESAKO \u2014 lygis, kuris tik kartojasi ir temos nei\u0161duoda. Nuimamas
+//                  tik tada, kai po jo dar kas nors lieka: \u201EMOKSLAS \u203A
+//                  SVEIKATA\u201C virsta \u201ESVEIKATA\u201C, o vien \u201EMOKSLAS\u201C lieka vardu.
+const SAKNIS = 'BOOKMARKS';
+const NIEKO_NESAKO = ['MOKSLAS'];
+
 export function keliasISegmentu(kelias) {
   if (!kelias) return [];
-  return String(kelias)
+  const segs = String(kelias)
     .split(/\s*(?:\u203A|\/|>)\s*/)
     .map(s => s.replace(/\s*:\s*$/, '').trim())
-    .filter(s => s !== '' && s.toUpperCase() !== 'BOOKMARKS');
+    .filter(s => s !== '' && s.toUpperCase() !== SAKNIS);
+
+  let i = 0;
+  while (i < segs.length - 1 && NIEKO_NESAKO.includes(segs[i].toUpperCase())) i++;
+  return segs.slice(i);
 }
 
 export function segmentaiIKelia(segs) {
