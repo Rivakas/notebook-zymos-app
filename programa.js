@@ -358,17 +358,23 @@ let zenkloBukle = 'dar netikrinta';
 async function zenklasAntIkonos(irasai) {
   const laukia = irasai.filter(i => !i.eksportuota).length;
 
+  // Kaip programėlė paleista, sprendžia viską: iš naršyklės kortelės ženklas
+  // neturi kur atsirasti — ikonos juk nėra.
+  const kaip = arIdiegta() ? 'paleista kaip programėlė' : 'atverta naršyklės kortelėje';
+
   if (!('setAppBadge' in navigator)) {
-    zenkloBukle = `Naršyklė šito nepalaiko — ikona lieka be skaičiaus. Laukia: ${laukia}.`;
+    zenkloBukle = `Laukia: ${laukia}. Naršyklė ženklo nepalaiko, tad ikonoje jo nebus (${kaip}).`;
   } else {
     try {
       if (laukia) await navigator.setAppBadge(laukia);
       else await navigator.clearAppBadge();
       zenkloBukle = laukia
-        ? `Nustatyta: ${laukia}. Jei ant ikonos nematyti — programėlė neįdiegta į ekraną.`
-        : 'Nieko nelaukia, tad ženklo ir nėra.';
+        ? `Nustatyta: ${laukia} · ${kaip}. Android ikonoje tai rodoma tašku, ne skaičiumi, ` +
+          'ir tik tada, kai programėlei įjungti pranešimų taškai (telefono Nustatymai → ' +
+          'Programėlės → ši programėlė → Pranešimai).'
+        : `Nieko nelaukia, tad ženklo ir nėra (${kaip}).`;
     } catch (e) {
-      zenkloBukle = 'Nepavyko: ' + e.message + ' (dažniausiai — programėlė neįdiegta).';
+      zenkloBukle = `Nepavyko: ${e.message} (${kaip}).`;
     }
   }
   piestiZenkloBukle();
