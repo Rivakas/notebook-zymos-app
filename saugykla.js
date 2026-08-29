@@ -101,7 +101,10 @@ export async function rastiPagalNuoroda(url) {
   const nr = zemelapis && zemelapis.get(k);
   if (nr !== undefined && nr !== null) {
     const a = await gautiArchyva();
-    return { tema: a.temos[nr] || '', baze: true };
+    // Kryžmiškai sudėtas įrašas guli keliose temose. Parodžius vieną,
+    // perkėlus jį atrodytų, kad rodoma pasenusi vieta.
+    const temos = (Array.isArray(nr) ? nr : [nr]).map(x => a.temos[x] || '').filter(Boolean);
+    return { tema: temos[0] || '', temos, baze: true };
   }
 
   return null;
@@ -119,7 +122,11 @@ async function archyvoNuorodos() {
   const m = new Map();
   for (const [nr, , nuoroda] of a.irasai) {
     const k = kanonine(nuoroda || '');
-    if (k) m.set(k, nr);
+    if (!k) continue;
+    const buvo = m.get(k);
+    if (buvo === undefined) m.set(k, nr);
+    else if (Array.isArray(buvo)) { if (!buvo.includes(nr)) buvo.push(nr); }
+    else if (buvo !== nr) m.set(k, [buvo, nr]);
   }
   nuorodoKesas = m;
   return m;

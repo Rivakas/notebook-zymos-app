@@ -265,3 +265,18 @@ label.varnele input[type=checkbox] {
   height: 22px;
   margin: 0;
 }
+
+/* ------------------------------------------------------- rikiavimas */
+
+/* Atskira eilute, o ne šalia paieškos: telefone abu viename lygyje paverstų
+   paieškos laukelį per siauru, ir jo užuomina nebetilptų. */
+.rikiavimo-eile { display: flex; justify-content: flex-end; margin-top: 6px; }
+
+.rikiavimo-eile select {
+  padding: 8px 10px;
+  background: var(--lauko-fonas);
+  color: inherit;
+  border: 1px solid var(--linija);
+  border-radius: 8px;
+  font-size: 16px;   /* mažiau nei 16px verčia iOS priartinti puslapį */
+}

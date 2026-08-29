@@ -200,7 +200,11 @@ async function piestiTurejima(nuoroda) {
                                       : '✓ Šitą jau turi — išsaugota, laukia eksporto';
     const tema = document.createElement('div');
     tema.className = 'turim-tema';
-    tema.textContent = turim.tema || '(be temos)';
+    // Kryžmiškai sudėtas įrašas guli keliose temose — rodom visas, kaip ir
+    // plėtinio lange.
+    const temos = (turim.temos && turim.temos.length) ? turim.temos
+                : (turim.tema ? [turim.tema] : []);
+    tema.textContent = temos.length ? temos.join('  ·  ') : '(be temos)';
     j.append(antraste, tema);
     m.textContent = 'Išsaugoti vis tiek';
   } else {
@@ -522,19 +526,33 @@ async function piestiArchyva() {
 
   const q = $('archyvo-paieska').value.trim().toLowerCase();
   const dalys = q.split(/\s+/).filter(Boolean);
+  const rikiavimas = $('archyvo-rikiavimas').value;
 
   // Be užklausos rodom tik pradžią: devynių tūkstančių eilučių piešimas
   // telefone užtruktų sekundes, o prasmės neturi.
-  let rasta = 0;
-  const rodomi = [];
+  const rasti = [];
   for (const e of archyvas.irasai) {
     if (dalys.length) {
       const t = (e[1] + ' ' + e[2] + ' ' + (archyvas.temos[e[0]] || '')).toLowerCase();
       if (!dalys.every(d => t.includes(d))) continue;
     }
-    rasta++;
-    if (rodomi.length < 200) rodomi.push(e);
+    rasti.push(e);
   }
+  const rasta = rasti.length;
+
+  // Rikiuojam visus rastus ir tik tada apkarpom. Apkarpytus rikiuoti būtų
+  // pigiau, bet „naujausi viršuje“ tada reikštų naujausius iš pirmų dviejų
+  // šimtų — sąrašas atrodytų teisingas ir nebūtų.
+  //
+  // Numatytas „Kaip archyve“ nerikiuoja iš viso, tad telefonas dirba tiek pat,
+  // kiek ir anksčiau; kaina atsiranda tik pasirinkus rikiavimą.
+  if (rikiavimas === 'naujausi') rasti.sort((a, b) => (b[3] || '').localeCompare(a[3] || ''));
+  if (rikiavimas === 'seniausi') rasti.sort((a, b) => (a[3] || '').localeCompare(b[3] || ''));
+  if (rikiavimas === 'tema') rasti.sort((a, b) =>
+    (archyvas.temos[a[0]] || '').localeCompare(archyvas.temos[b[0]] || '', 'lt') ||
+    (a[1] || '').localeCompare(b[1] || '', 'lt'));
+
+  const rodomi = rasti.slice(0, 200);
 
   b.className = 'bukle';
   b.textContent = dalys.length
@@ -582,6 +600,7 @@ $('archyvo-paieska').oninput = () => {
   clearTimeout(archyvoLaikmatis);
   archyvoLaikmatis = setTimeout(piestiArchyva, 200);
 };
+$('archyvo-rikiavimas').onchange = piestiArchyva;
 
 // ----------------------------------------------------------- sinchronizacija
 

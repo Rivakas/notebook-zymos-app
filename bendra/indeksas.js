@@ -135,7 +135,17 @@ export function kurtiIndeksa(irasai, kolekcijos, pranesk) {
 
     const url = r.nuoroda || r.link || '';
     const kanon = kanonine(url);
-    if (kanon) nuorodos[kanon] = nr;
+    // Ta pati nuoroda bazėje gali gulėti keliose temose — kryžminis
+    // kartotekavimas čia sąmoningas, ir paketas jas išsaugo. Iki šiol lentelė
+    // laikė po vieną, ir laimėdavo paskutinė sutikta: perkėlus įrašą į naują
+    // temą langas rodydavo senąją kopiją ir atrodydavo, kad indeksas pasenęs.
+    if (kanon) {
+      const buvo = nuorodos[kanon];
+      if (buvo === undefined) nuorodos[kanon] = nr;
+      else if (Array.isArray(buvo)) { if (!buvo.includes(nr)) buvo.push(nr); }
+      else if (buvo !== nr) nuorodos[kanon] = [buvo, nr];
+    }
+
 
     archyvas.push([nr, (r.pavadinimas || '').trim(), url, (r.sukurta || '').slice(0, 10)]);
 
