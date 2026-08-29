@@ -413,10 +413,16 @@ async function pranesimasSuSkaiciumi(laukia) {
     return;
   }
 
+  // `silent` sąmoningai NENURODYTAS. MIUI (ir dalis kitų paleidiklių) tyliems
+  // pranešimams ženkliuko ant ikonos nerodo — o ženkliukas čia ir yra visas
+  // tikslas. Patikrinta 2026-08-29: su `silent: true` pranešimas skydelyje
+  // matėsi, o ikona liko tuščia.
+  //
+  // Erzinti tai neturėtų: žymė ta pati, o `renotify: false` reiškia, kad tą
+  // patį pranešimą pakeitus naujas garsas nebeskamba. Suskamba tik pirmasis.
   await reg.showNotification('Notebook žymos', {
     body: `${laukia} ${laukia === 1 ? 'žyma laukia' : 'žymos laukia'} eksporto`,
     tag: ZENKLO_ZYME,
-    silent: true,
     renotify: false,
     icon: './ikonos/192.png',
     badge: './ikonos/192.png'
