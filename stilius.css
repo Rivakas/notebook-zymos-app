@@ -248,3 +248,20 @@ a.pav { color: inherit; text-decoration: none; }
   background: var(--zalia);
   border-radius: 9px;
 }
+
+/* Varnelė nustatymuose. Bendrasis `label` čia netinka: jis skirtas laukams,
+   kur užrašas stovi virš įvedimo. Varnelei reikia vienos eilutės, o pati
+   dėžutė telefone turi būti pakankamai didelė pirštui. */
+label.varnele {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--tekstas);
+  margin: 14px 0 4px;
+}
+label.varnele input[type=checkbox] {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}

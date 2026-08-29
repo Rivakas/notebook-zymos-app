@@ -139,7 +139,7 @@ document.querySelectorAll('.skirtukas').forEach(b => {
     $('v-' + b.dataset.v).classList.remove('hidden');
     if (b.dataset.v === 'sarasas') piestiSarasa();
     if (b.dataset.v === 'archyvas') piestiArchyva();
-    if (b.dataset.v === 'nustatymai') { piestiDerini(); piestiZenkloBukle(); }
+    if (b.dataset.v === 'nustatymai') { piestiDerini(); piestiZenkloBukle(); piestiZenkloJungikli(); }
     scrollTo(0, 0);
   };
 });
@@ -341,6 +341,7 @@ async function piestiKieki() {
   const irasai = await S.gautiIrasus();
   $('kiekis').textContent = irasai.length;
   await zenklasAntIkonos(irasai);
+  await pranesimasSuSkaiciumi(irasai.filter(i => !i.eksportuota).length);
 }
 
 // Skaičius ant pačios programėlės ikonos — tas pats, ką plėtinys rodo ant savo
@@ -368,10 +369,14 @@ async function zenklasAntIkonos(irasai) {
     try {
       if (laukia) await navigator.setAppBadge(laukia);
       else await navigator.clearAppBadge();
+      const s = await S.gautiSinch();
       zenkloBukle = laukia
-        ? `Nustatyta: ${laukia} · ${kaip}. Android ikonoje tai rodoma tašku, ne skaičiumi, ` +
-          'ir tik tada, kai programėlei įjungti pranešimų taškai (telefono Nustatymai → ' +
-          'Programėlės → ši programėlė → Pranešimai).'
+        ? `Nustatyta: ${laukia} · ${kaip}` +
+          (s.zenklas
+            ? (Notification.permission === 'granted'
+                ? ' · tylus pranešimas įjungtas.'
+                : ' · pranešimų teisė neduota, tad ikonoje nesimatys.')
+            : ' · Android ikonoje nesimatys, kol neįjungsi tylaus pranešimo (žemiau).')
         : `Nieko nelaukia, tad ženklo ir nėra (${kaip}).`;
     } catch (e) {
       zenkloBukle = `Nepavyko: ${e.message} (${kaip}).`;
@@ -384,6 +389,54 @@ function piestiZenkloBukle() {
   const el = document.getElementById('zenklo-bukle');
   if (el) el.textContent = zenkloBukle;
 }
+
+// Android ženkliuką ant ikonos sieja su pranešimais: `setAppBadge` pavyksta,
+// bet kol programėlė nė vieno pranešimo nepaskelbė, sistema neturi ko ženklinti.
+// Telefono nustatymuose tai matyti eilute „ši programa dar nepaskelbė jokių…“.
+//
+// Todėl skaičiui ant ikonos laikom vieną tylų pranešimą. Jis be garso, be
+// vibracijos ir visada tas pats (`tag`), tad ne kaupiasi, o keičiasi. Nulis
+// laukiančių — pranešimo nebelieka.
+//
+// Įjungiama tik pačiam paspaudus: pranešimų teisė čia užsidirbama taip pat,
+// kaip plėtinyje užsidirbamos neprivalomos teisės.
+const ZENKLO_ZYME = 'laukia-eksporto';
+
+async function pranesimasSuSkaiciumi(laukia) {
+  const s = await S.gautiSinch();
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return;
+
+  // Išjungus ar nuliui — nuimam ir seną pranešimą, jei toks kabo.
+  if (!s.zenklas || !laukia || Notification.permission !== 'granted') {
+    for (const p of await reg.getNotifications({ tag: ZENKLO_ZYME })) p.close();
+    return;
+  }
+
+  await reg.showNotification('Notebook žymos', {
+    body: `${laukia} ${laukia === 1 ? 'žyma laukia' : 'žymos laukia'} eksporto`,
+    tag: ZENKLO_ZYME,
+    silent: true,
+    renotify: false,
+    icon: './ikonos/192.png',
+    badge: './ikonos/192.png'
+  });
+}
+
+$('n-zenklas').onchange = async e => {
+  if (e.target.checked) {
+    let leidimas = Notification.permission;
+    if (leidimas === 'default') leidimas = await Notification.requestPermission();
+    if (leidimas !== 'granted') {
+      e.target.checked = false;
+      zenkloBukle = 'Be pranešimų teisės Android ženkliuko ant ikonos nerodo.';
+      piestiZenkloBukle();
+      return;
+    }
+  }
+  await S.irasytiSinch({ zenklas: e.target.checked });
+  await piestiKieki();
+};
 
 $('paieska').oninput = () => piestiSarasa();
 
@@ -702,3 +755,8 @@ $('n-atjungti').onclick = async () => {
   await piestiRysi();
   parodyti('n-bukle', 'Atjungta.', null);
 };
+
+async function piestiZenkloJungikli() {
+  const s = await S.gautiSinch();
+  $('n-zenklas').checked = !!s.zenklas;
+}

@@ -8,7 +8,7 @@
 // Pakeitus numerį senasis kešas ištrinamas per `activate`. Verta pakelti
 // kaskart, kai keičiasi pats apvalkalas — taip nelieka progos susidurti
 // senai HTML su nauju JS.
-const KESAS = 'zymos-v7';
+const KESAS = 'zymos-v8';
 
 const APVALKALAS = [
   './',
